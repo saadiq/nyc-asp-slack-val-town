@@ -1,8 +1,9 @@
 // tests/integration/e2e.test.ts
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeAll, beforeEach } from 'vitest';
 import { main } from '../../src/main';
 import { readFileSync } from 'fs';
 import { join } from 'path';
+import * as dateUtils from '../../src/utils/date-utils';
 
 // Setup mocks
 vi.mock('../../src/calendar/ics-fetcher', () => ({
@@ -30,14 +31,20 @@ describe('E2E Integration Test', () => {
     process.env.FAR_SIDE_DAYS = 'Tue,Fri';
   });
 
+  beforeEach(() => {
+    mockSendToSlack.mockClear();
+  });
+
   it('should run main without errors', async () => {
-    await expect(main()).resolves.not.toThrow();
+    await main();
+    // If we get here without throwing, the test passes
+    expect(true).toBe(true);
   });
 
   it('should generate valid Slack messages', async () => {
-    // Mock Sunday 5 AM
+    // Mock Sunday 5 AM NYC time
     const sundayDate = new Date('2025-10-05T05:00:00');
-    vi.spyOn(Date, 'now').mockReturnValue(sundayDate.getTime());
+    const getNycNowSpy = vi.spyOn(dateUtils, 'getNycNow').mockReturnValue(sundayDate);
 
     await main();
 
@@ -46,5 +53,7 @@ describe('E2E Integration Test', () => {
     const message = mockSendToSlack.mock.calls[0][1];
     expect(message.blocks).toBeDefined();
     expect(message.blocks[0].text.text).toContain('Parking Strategy');
+
+    getNycNowSpy.mockRestore();
   });
 });
