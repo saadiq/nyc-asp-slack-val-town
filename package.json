@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest",
-    "test:watch": "vitest --watch"
+    "test:watch": "vitest --watch",
+    "test:scenarios": "bun scripts/test-scenarios.ts"
   },
   "dependencies": {
     "date-fns": "^3.0.0",
