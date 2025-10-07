@@ -105,11 +105,11 @@ async function checkEmergencySuspension(config: any, storage?: any) {
 
   const { suspended, reason } = await isSuspended(today, storage);
 
-  // Check if this is an emergency (not in ICS)
-  // This is approximated by checking if the website reports suspension
-  // A more robust implementation would compare against ICS explicitly
+  // Check if this is an emergency (not a scheduled holiday)
+  // This catches snow/weather emergencies and other unplanned suspensions
+  // Holidays are already in the ICS calendar, so they're handled by the weekly summary
 
-  if (suspended && reason === 'emergency') {
+  if (suspended && reason !== 'holiday') {
     console.log('Emergency suspension detected!');
     const message = buildEmergencyAlert(reason);
     await sendToSlack(config.slackWebhookUrl, message);
