@@ -55,8 +55,8 @@ In neighborhoods with street cleaning on both sides of the street on different d
 ### Our Solution
 A Val Town scheduled script that:
 - **Sunday 5 AM**: Sends weekly parking strategy overview with visual calendar
-- **Daily 10 AM**: Sends move reminders when repositioning is needed
-- **Daily 12:30 PM**: Checks for emergency ASP suspensions and alerts if detected
+- **Mon-Thu 10 AM**: Sends move reminders when repositioning is needed
+- **Mon-Fri 5 AM**: Checks for emergency ASP suspensions and alerts if detected
 
 ### Key Constraints
 - Street cleaning schedule: Mon/Thu on near side (🏠), Tue/Fri on far side (🌳), 9:00-10:30 AM
@@ -84,8 +84,9 @@ A Val Town scheduled script that:
       ▼              ▼                 ▼
 ┌─────────┐   ┌──────────┐   ┌─────────────────┐
 │ Sunday  │   │  Daily   │   │    Daily        │
-│  5 AM   │   │  10 AM   │   │   12:30 PM      │
+│  5 AM   │   │  10 AM   │   │   5 AM          │
 │ Weekly  │   │  Move    │   │  Emergency      │
+│ (Sun)   │   │(Mon-Thu) │   │  (Mon-Fri)      │
 │Strategy │   │ Reminder │   │    Check        │
 └────┬────┘   └─────┬────┘   └────┬────────────┘
      │              │              │
@@ -240,8 +241,8 @@ FAR_SIDE_EMOJI=🌳
 
 # Scheduling (cron format)
 WEEKLY_SUMMARY_TIME=0 5 * * 0
-DAILY_REMINDER_TIME=0 10 * * *
-EMERGENCY_CHECK_TIME=30 12 * * *
+DAILY_REMINDER_TIME=0 10 * * 1-4
+EMERGENCY_CHECK_TIME=0 5 * * 1-5
 ```
 
 For Val Town deployment, set these in the Val Town UI under "Secrets".
@@ -449,8 +450,8 @@ export function loadConfig(): Config {
 
     // Scheduling
     weeklySummaryTime: getEnv('WEEKLY_SUMMARY_TIME', '0 5 * * 0'),
-    dailyReminderTime: getEnv('DAILY_REMINDER_TIME', '0 10 * * *'),
-    emergencyCheckTime: getEnv('EMERGENCY_CHECK_TIME', '30 12 * * *'),
+    dailyReminderTime: getEnv('DAILY_REMINDER_TIME', '0 10 * * 1-4'),
+    emergencyCheckTime: getEnv('EMERGENCY_CHECK_TIME', '0 5 * * 1-5'),
   };
 }
 ```
@@ -2322,8 +2323,8 @@ export async function main(storage?: any) {
       await checkAndSendMoveReminder(config, storage);
     }
 
-    // Daily 12:30 PM - Emergency check
-    if (hour === 12) {
+    // Mon-Fri 5 AM - Emergency check (excluding Sunday to avoid collision with weekly summary)
+    if (hour === 5 && ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(dayOfWeek)) {
       await checkEmergencySuspension(config, storage);
     }
 
@@ -2506,8 +2507,8 @@ Automated Slack notifications for NYC Alternate Side Parking strategy.
 ## Features
 
 - **Weekly Strategy (Sun 5 AM)**: Visual calendar showing where to park each day
-- **Daily Reminders (10 AM)**: Alerts when you need to move your car
-- **Emergency Alerts (12:30 PM)**: Notifications for unexpected ASP suspensions
+- **Daily Reminders (Mon-Thu 10 AM)**: Alerts when you need to move your car
+- **Emergency Alerts (Mon-Fri 5 AM)**: Notifications for unexpected ASP suspensions
 
 ## Setup
 
@@ -2794,7 +2795,7 @@ After deployment:
 1. Trigger val manually in Val Town UI
 2. Check logs for errors
 3. Verify Slack messages are received
-4. Test all three schedules (Sun 5 AM, daily 10 AM, daily 12:30 PM)
+4. Test all three schedules (Sun 5 AM, Mon-Thu 10 AM, Mon-Fri 5 AM)
 
 ---
 

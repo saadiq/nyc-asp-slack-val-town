@@ -29,13 +29,13 @@ export async function main(storage?: any) {
       await sendWeeklySummary(config, storage);
     }
 
-    // Daily 10 AM - Move reminder
-    if (hour === 10) {
+    // Mon-Thu 10 AM - Move reminder
+    if (hour === 10 && ['Mon', 'Tue', 'Wed', 'Thu'].includes(dayOfWeek)) {
       await checkAndSendMoveReminder(config, storage);
     }
 
-    // Daily 12:30 PM - Emergency check
-    if (hour === 12) {
+    // Mon-Fri 5 AM - Emergency check (excluding Sunday to avoid collision with weekly summary)
+    if (hour === 5 && ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(dayOfWeek)) {
       await checkEmergencySuspension(config, storage);
     }
 

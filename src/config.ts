@@ -33,7 +33,7 @@ export function loadConfig(): Config {
 
     // Scheduling
     weeklySummaryTime: getEnv('WEEKLY_SUMMARY_TIME', '0 5 * * 0'),
-    dailyReminderTime: getEnv('DAILY_REMINDER_TIME', '0 10 * * *'),
-    emergencyCheckTime: getEnv('EMERGENCY_CHECK_TIME', '30 12 * * *'),
+    dailyReminderTime: getEnv('DAILY_REMINDER_TIME', '0 10 * * 1-4'),
+    emergencyCheckTime: getEnv('EMERGENCY_CHECK_TIME', '0 5 * * 1-5'),
   };
 }

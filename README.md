@@ -5,8 +5,8 @@ Automated Slack notifications for NYC Alternate Side Parking strategy.
 ## Features
 
 - **Weekly Strategy (Sun 5 AM)**: Visual calendar showing where to park each day
-- **Daily Reminders (10 AM)**: Alerts when you need to move your car
-- **Emergency Alerts (12:30 PM)**: Notifications for unexpected ASP suspensions
+- **Daily Reminders (Mon-Thu 10 AM)**: Alerts when you need to move your car
+- **Emergency Alerts (Mon-Fri 5 AM)**: Notifications for unexpected ASP suspensions
 
 ## Setup
 
