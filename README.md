@@ -10,7 +10,6 @@ Automated Slack notifications for NYC Alternate Side Parking strategy.
 
 ## Sample Output
 
-```
 🚗 Parking Strategy for Oct 6 - Oct 10
 `Mon    Tue    Wed    Thu    Fri`
   🌳     🌳     🌳     🌳     🏡
@@ -20,7 +19,6 @@ ASP suspended on Tue. Adjust your shuffle pattern accordingly.
 🌳 *Wed*: Park on far side - _no cleaning today_
 🌳 *Thu*: Park on far side - _near side has cleaning_
 🏡 *Fri*: Park on near side - _far side has cleaning_
-```
 
 ## Setup
 
