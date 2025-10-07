@@ -10,13 +10,32 @@ Automated Slack notifications for NYC Alternate Side Parking strategy.
 
 ## Setup
 
-### 1. Install Dependencies
+### 1. Create Slack Incoming Webhook
+
+1. **Go to your Slack workspace settings**:
+   - Visit https://api.slack.com/apps
+   - Click "Create New App" → "From scratch"
+   - Name it (e.g., "NYC ASP Bot")
+   - Select your workspace
+
+2. **Enable Incoming Webhooks**:
+   - In the app settings, click "Incoming Webhooks" in the sidebar
+   - Toggle "Activate Incoming Webhooks" to **On**
+   - Click "Add New Webhook to Workspace"
+   - Select the channel where you want notifications (e.g., #parking or #general)
+   - Click "Allow"
+
+3. **Copy the Webhook URL**:
+   - You'll see a webhook URL like: `https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXX`
+   - Copy this URL for the next step
+
+### 2. Install Dependencies
 
 ```bash
 bun install
 ```
 
-### 2. Configure Environment
+### 3. Configure Environment
 
 Create `.env`:
 
@@ -30,20 +49,28 @@ NEAR_SIDE_EMOJI=🏠
 FAR_SIDE_EMOJI=🌳
 ```
 
-### 3. Test Locally
+### 4. Test Locally
 
 ```bash
+# Test the Slack webhook
+curl -X POST -H 'Content-Type: application/json' \
+  -d '{"text":"Test message from NYC ASP Bot"}' \
+  YOUR_WEBHOOK_URL
+
+# Run tests
 bun test
+
+# Run the bot
 bun src/main.ts
 ```
 
-### 4. Deploy to Val Town
+### 5. Deploy to Val Town
 
 ```bash
 ./deploy.sh
 ```
 
-Follow the instructions printed by the deploy script.
+Follow the instructions printed by the deploy script. When configuring Val Town secrets, use the same `SLACK_WEBHOOK_URL` from step 1.
 
 ## Development
 
