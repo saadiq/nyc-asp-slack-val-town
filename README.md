@@ -67,10 +67,23 @@ bun src/main.ts
 ### 5. Deploy to Val Town
 
 ```bash
+bun run deploy
+# or
 ./deploy.sh
 ```
 
-Follow the instructions printed by the deploy script. When configuring Val Town secrets, use the same `SLACK_WEBHOOK_URL` from step 1.
+The deploy script will:
+- Copy `val-town.ts` to `dist/val-town.js` (~17KB, well under Val Town's 80KB limit)
+- Copy the code to your clipboard (on macOS)
+- Display deployment instructions
+
+**In Val Town:**
+1. Go to https://val.town and create a new **Interval Val**
+2. Paste the code from your clipboard (or copy from `dist/val-town.js`)
+3. Add environment secrets (same values from step 3)
+4. Set schedule to run every hour: `0 * * * *`
+
+**Note:** The Val Town version uses npm import syntax (`npm:package@version`) to keep dependencies external, avoiding the 80KB code size limit.
 
 ## Development
 

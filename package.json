@@ -5,7 +5,8 @@
   "scripts": {
     "test": "vitest",
     "test:watch": "vitest --watch",
-    "test:scenarios": "bun scripts/test-scenarios.ts"
+    "test:scenarios": "bun scripts/test-scenarios.ts",
+    "deploy": "./deploy.sh"
   },
   "dependencies": {
     "date-fns": "^3.0.0",
