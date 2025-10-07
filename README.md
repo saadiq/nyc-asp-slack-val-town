@@ -8,6 +8,20 @@ Automated Slack notifications for NYC Alternate Side Parking strategy.
 - **Daily Reminders (Mon-Thu 10 AM)**: Alerts when you need to move your car
 - **Emergency Alerts (Mon-Fri 5 AM)**: Notifications for unexpected ASP suspensions
 
+## Sample Output
+
+```
+🚗 Parking Strategy for Oct 6 - Oct 10
+`Mon    Tue    Wed    Thu    Fri`
+  🌳     🌳     🌳     🌳     🏡
+ASP suspended on Tue. Adjust your shuffle pattern accordingly.
+🌳 *Mon*: Park on far side - _near side has cleaning_
+🌳 *Tue*: Park on far side - _holiday_
+🌳 *Wed*: Park on far side - _no cleaning today_
+🌳 *Thu*: Park on far side - _near side has cleaning_
+🏡 *Fri*: Park on near side - _far side has cleaning_
+```
+
 ## Setup
 
 ### 1. Create Slack Incoming Webhook
