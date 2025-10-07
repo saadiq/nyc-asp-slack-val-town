@@ -74,7 +74,7 @@ Install the Val Town CLI if you haven't already:
 deno install -Agf https://esm.town/v/std/vt
 ```
 
-Then deploy:
+**Initial Deployment:**
 
 ```bash
 bun run deploy
@@ -91,6 +91,24 @@ The script will:
 After deployment:
 - Add environment secrets in Val Town UI
 - Configure as an Interval Val to run every hour
+
+**Updating Existing Val:**
+
+If you've already deployed and want to push updates:
+
+```bash
+# Copy updated code to cloned Val directory
+cp val-town.ts nyc-asp-val/index.ts
+
+# Push to Val Town
+cd nyc-asp-val && vt push
+```
+
+Or use watch mode for automatic syncing:
+
+```bash
+cd nyc-asp-val && vt watch
+```
 
 #### Option B: Manual Deployment
 

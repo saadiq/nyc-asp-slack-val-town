@@ -3,3 +3,6 @@ dist/
 .env
 *.log
 .DS_Store
+
+# Val Town cloned directory (managed by vt CLI)
+nyc-asp-val/
