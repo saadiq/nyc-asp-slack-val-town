@@ -1,0 +1,123 @@
+// src/main.ts
+import { loadConfig } from './config';
+import { getNycNow, formatNycDate, getDayOfWeek } from './utils/date-utils';
+import { buildWeekView, optimizeParkingSides } from './parking-logic/week-analyzer';
+import { shouldSendMoveReminder } from './parking-logic/move-decision';
+import { isSuspended } from './parking-logic/suspension-checker';
+import {
+  buildWeeklySummary,
+  buildMoveReminder,
+  buildEmergencyAlert,
+  buildErrorNotification,
+} from './slack/message-builder';
+import { sendToSlack } from './slack/webhook';
+
+/**
+ * Main entry point - called by Val Town scheduler every hour
+ */
+export async function main(storage?: any) {
+  try {
+    const config = loadConfig();
+    const now = getNycNow();
+    const hour = now.getHours();
+    const dayOfWeek = getDayOfWeek(now);
+
+    console.log(`Running NYC ASP Bot at ${formatNycDate(now, 'yyyy-MM-dd HH:mm')}`);
+
+    // Sunday 5 AM - Weekly summary
+    if (dayOfWeek === 'Sun' && hour === 5) {
+      await sendWeeklySummary(config, storage);
+    }
+
+    // Daily 10 AM - Move reminder
+    if (hour === 10) {
+      await checkAndSendMoveReminder(config, storage);
+    }
+
+    // Daily 12:30 PM - Emergency check
+    if (hour === 12) {
+      await checkEmergencySuspension(config, storage);
+    }
+
+    console.log('NYC ASP Bot run completed');
+  } catch (error) {
+    console.error('NYC ASP Bot error:', error);
+
+    // Try to send error notification
+    try {
+      const config = loadConfig();
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      const message = buildErrorNotification(errorMsg);
+      await sendToSlack(config.slackWebhookUrl, message);
+    } catch (notifyError) {
+      console.error('Failed to send error notification:', notifyError);
+    }
+  }
+}
+
+/**
+ * Send weekly parking strategy summary
+ */
+async function sendWeeklySummary(config: any, storage?: any) {
+  console.log('Sending weekly summary...');
+
+  const rawWeekView = await buildWeekView(config, storage);
+  const weekView = optimizeParkingSides(rawWeekView);
+
+  const message = buildWeeklySummary(weekView, config);
+  await sendToSlack(config.slackWebhookUrl, message);
+
+  console.log('Weekly summary sent');
+}
+
+/**
+ * Check if move reminder should be sent and send if needed
+ */
+async function checkAndSendMoveReminder(config: any, storage?: any) {
+  const rawWeekView = await buildWeekView(config, storage);
+  const weekView = optimizeParkingSides(rawWeekView);
+
+  const decision = shouldSendMoveReminder(weekView, config);
+
+  if (decision.shouldMove) {
+    console.log('Sending move reminder...');
+    const message = buildMoveReminder(decision, config);
+    await sendToSlack(config.slackWebhookUrl, message);
+    console.log('Move reminder sent');
+  } else {
+    console.log('No move needed today');
+  }
+}
+
+/**
+ * Check for emergency suspension and alert if found
+ */
+async function checkEmergencySuspension(config: any, storage?: any) {
+  const today = getNycNow();
+  const todayDow = getDayOfWeek(today);
+
+  // Only check on weekdays with scheduled cleaning
+  if (!config.nearSideDays.includes(todayDow) &&
+      !config.farSideDays.includes(todayDow)) {
+    console.log('No cleaning scheduled today, skipping emergency check');
+    return;
+  }
+
+  const { suspended, reason } = await isSuspended(today, storage);
+
+  // Check if this is an emergency (not in ICS)
+  // This is approximated by checking if the website reports suspension
+  // A more robust implementation would compare against ICS explicitly
+
+  if (suspended && reason === 'emergency') {
+    console.log('Emergency suspension detected!');
+    const message = buildEmergencyAlert(reason);
+    await sendToSlack(config.slackWebhookUrl, message);
+    console.log('Emergency alert sent');
+  } else {
+    console.log('No emergency suspension detected');
+  }
+}
+
+// Export for Val Town
+export default main;
