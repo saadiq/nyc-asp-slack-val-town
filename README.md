@@ -66,24 +66,47 @@ bun src/main.ts
 
 ### 5. Deploy to Val Town
 
+#### Option A: Using Val Town CLI (Recommended)
+
+Install the Val Town CLI if you haven't already:
+
+```bash
+deno install -Agf https://esm.town/v/std/vt
+```
+
+Then deploy:
+
 ```bash
 bun run deploy
 # or
 ./deploy.sh
 ```
 
-The deploy script will:
-- Copy `val-town.ts` to `dist/val-town.js` (~17KB, well under Val Town's 80KB limit)
-- Copy the code to your clipboard (on macOS)
-- Display deployment instructions
+The script will:
+1. Detect `vt` CLI and offer automated deployment
+2. Prompt you for a Val name (e.g., `nyc-asp-bot`)
+3. Create the Val automatically
+4. Open it in your browser
 
-**In Val Town:**
+After deployment:
+- Add environment secrets in Val Town UI
+- Configure as an Interval Val to run every hour
+
+#### Option B: Manual Deployment
+
+If you prefer manual deployment or don't have the CLI:
+
+```bash
+./deploy.sh
+```
+
+Choose option 2 for clipboard copy, then:
 1. Go to https://val.town and create a new **Interval Val**
-2. Paste the code from your clipboard (or copy from `dist/val-town.js`)
+2. Paste the code from clipboard
 3. Add environment secrets (same values from step 3)
 4. Set schedule to run every hour: `0 * * * *`
 
-**Note:** The Val Town version uses npm import syntax (`npm:package@version`) to keep dependencies external, avoiding the 80KB code size limit.
+**Note:** The Val Town version (~17KB) uses npm import syntax (`npm:package@version`) to keep dependencies external, avoiding the 80KB code size limit.
 
 ## Development
 
