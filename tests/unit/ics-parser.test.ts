@@ -1,9 +1,12 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { parseIcsSuspensions, isSuspendedByIcs } from '../../src/calendar/ics-parser';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 
 describe('ics-parser', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
   const sampleIcs = readFileSync(
     join(__dirname, '../fixtures/sample.ics'),
     'utf-8'
@@ -28,8 +31,8 @@ describe('ics-parser', () => {
   });
 
   it('should handle invalid ICS gracefully', () => {
-    // Use completely malformed ICS that will trigger parser error
-    const invalidIcs = 'This is not ICS at all!';
-    expect(() => parseIcsSuspensions(invalidIcs)).toThrow();
+    // ical.js is quite permissive, so we need truly broken syntax
+    const invalidIcs = 'BEGIN:VCALENDAR\nBROKEN';
+    expect(() => parseIcsSuspensions(invalidIcs)).toThrow('ICS parsing failed');
   });
 });

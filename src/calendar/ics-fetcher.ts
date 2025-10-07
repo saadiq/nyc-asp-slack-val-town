@@ -40,7 +40,7 @@ export async function getIcsContent(
   // Check cache first (unless forcing refresh)
   if (!forceRefresh) {
     const cached = await getCachedCalendar(storage);
-    if (cached && isCacheFresh(cached)) {
+    if (cached && cached.icsContent && isCacheFresh(cached)) {
       console.log('Using cached ICS calendar');
       return cached.icsContent;
     }
