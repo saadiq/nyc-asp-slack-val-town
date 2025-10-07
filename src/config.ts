@@ -28,7 +28,7 @@ export function loadConfig(): Config {
     cleaningEndTime: getEnv('CLEANING_END_TIME', '10:30'),
 
     // Display
-    nearSideEmoji: getEnv('NEAR_SIDE_EMOJI', '🏠'),
+    nearSideEmoji: getEnv('NEAR_SIDE_EMOJI', '🏡'),
     farSideEmoji: getEnv('FAR_SIDE_EMOJI', '🌳'),
 
     // Scheduling

@@ -12,15 +12,20 @@ export function buildWeeklySummary(
   const weekStart = formatNycDate(weekView.startDate, 'MMM d');
   const weekEnd = formatNycDate(weekView.endDate, 'MMM d');
 
-  // Build emoji calendar
-  const calendarRow = weekView.days.map(day => {
-    const emoji = day.parkOnSide === 'near'
+  // Build emoji calendar with proper spacing for alignment
+  // Emojis take ~2 char widths visually, so adjust spacing accordingly
+  const icons = weekView.days.map((day, index) => {
+    const icon = day.parkOnSide === 'near'
       ? config.nearSideEmoji
       : config.farSideEmoji;
 
-    return emoji;
-  }).join('  ');
+    // Add padding after each icon except the last (emoji ~2 chars + 5 spaces = 7 to match "Mon    ")
+    return index < weekView.days.length - 1
+      ? icon + '     ' // 5 spaces
+      : icon;
+  }).join('');
 
+  const calendarRow = '  ' + icons; // 2 spaces to center under day headers
   const dayHeaders = 'Mon    Tue    Wed    Thu    Fri';
 
   // Generate strategy text

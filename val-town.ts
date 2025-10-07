@@ -14,7 +14,7 @@
  * Optional Environment Variables:
  * - CLEANING_START_TIME: Start time for cleaning (default: "09:00")
  * - CLEANING_END_TIME: End time for cleaning (default: "10:30")
- * - NEAR_SIDE_EMOJI: Emoji for near side (default: "🏠")
+ * - NEAR_SIDE_EMOJI: Emoji for near side (default: "🏡")
  * - FAR_SIDE_EMOJI: Emoji for far side (default: "🌳")
  */
 
@@ -89,7 +89,7 @@ function loadConfig(): Config {
     farSideDays: parseDays(getEnv('FAR_SIDE_DAYS', 'Tue,Fri')),
     cleaningStartTime: getEnv('CLEANING_START_TIME', '09:00'),
     cleaningEndTime: getEnv('CLEANING_END_TIME', '10:30'),
-    nearSideEmoji: getEnv('NEAR_SIDE_EMOJI', '🏠'),
+    nearSideEmoji: getEnv('NEAR_SIDE_EMOJI', '🏡'),
     farSideEmoji: getEnv('FAR_SIDE_EMOJI', '🌳'),
     weeklySummaryTime: getEnv('WEEKLY_SUMMARY_TIME', '0 5 * * 0'),
     dailyReminderTime: getEnv('DAILY_REMINDER_TIME', '0 10 * * 1-4'),
