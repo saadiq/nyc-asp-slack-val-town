@@ -1,0 +1,34 @@
+<!-- Val Town Icon v3 - Red circle and slash, black P, white background -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <!-- White background -->
+  <rect width="512" height="512" fill="white"/>
+
+  <!-- Red circle outline -->
+  <circle cx="256" cy="256" r="220" fill="none" stroke="red" stroke-width="56"/>
+
+  <!-- Black letter P -->
+  <g>
+    <!-- Vertical bar of P -->
+    <rect x="160" y="140" width="56" height="240" rx="5" fill="black"/>
+
+    <!-- Top rounded part of P with hollow center -->
+    <path d="M 216 140
+             L 280 140
+             C 330 140, 360 170, 360 210
+             C 360 250, 330 280, 280 280
+             L 216 280
+             L 216 224
+             L 275 224
+             C 295 224, 304 217, 304 210
+             C 304 203, 295 196, 275 196
+             L 216 196
+             Z"
+          fill="black"/>
+  </g>
+
+  <!-- Red diagonal slash -->
+  <line x1="115" y1="115" x2="397" y2="397"
+        stroke="red"
+        stroke-width="56"
+        stroke-linecap="round"/>
+</svg>
