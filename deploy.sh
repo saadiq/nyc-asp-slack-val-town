@@ -51,8 +51,12 @@ if [[ "$push_confirm" =~ ^[Yy]$ ]]; then
   cd nyc-asp-val && vt push
 
   if [ $? -eq 0 ]; then
+    # Clean up the generated files after successful push
+    cd .. && rm -f nyc-asp-val/index.ts nyc-asp-val/README.md
+
     echo ""
     echo "✅ Successfully deployed to Val Town!"
+    echo "🧹 Cleaned up generated files"
     echo ""
     echo "📝 Don't forget to configure environment variables in Val Town UI:"
     echo "   - SLACK_WEBHOOK_URL (required)"
@@ -62,6 +66,7 @@ if [[ "$push_confirm" =~ ^[Yy]$ ]]; then
   else
     echo ""
     echo "❌ Push failed. Check the error above."
+    echo "ℹ️  Keeping generated index.ts for debugging"
     exit 1
   fi
 else

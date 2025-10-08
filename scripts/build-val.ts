@@ -176,8 +176,78 @@ async function buildValTownBundle() {
     console.log(`   Limit usage: ${percentUsed}%`);
   }
 
+  // Generate Val-specific README
+  await generateValReadme();
+
   console.log('\n📝 Next steps:');
   console.log('   cd nyc-asp-val && vt push');
+}
+
+async function generateValReadme() {
+  const readmePath = join(OUTPUT_DIR, 'README.md');
+
+  const readme = `# NYC ASP Parking Bot
+
+Automated Slack notifications for NYC Alternate Side Parking strategy.
+
+🔗 **[View Source Code on GitHub](https://github.com/saadiq/nyc-asp-slack-val-town)**
+
+## What This Val Does
+
+This Val runs every hour and sends you strategic Slack notifications about NYC Alternate Side Parking:
+
+- **Sunday 5 AM**: Weekly parking strategy with visual calendar
+- **Mon-Thu 10 AM**: Move reminders when you need to switch sides
+- **Mon-Fri 5 AM**: Emergency alerts for unexpected ASP suspensions
+
+## Configuration
+
+### Required Environment Variables
+
+Set these in the Val Town UI:
+
+- \`SLACK_WEBHOOK_URL\` - Your Slack incoming webhook URL ([create one here](https://api.slack.com/messaging/webhooks))
+
+### Optional Environment Variables
+
+Customize for your street's cleaning schedule:
+
+- \`NEAR_SIDE_DAYS\` (default: \`Mon,Thu\`) - Days when your home side has cleaning
+- \`FAR_SIDE_DAYS\` (default: \`Tue,Fri\`) - Days when opposite side has cleaning
+- \`CLEANING_START_TIME\` (default: \`09:00\`) - When cleaning starts
+- \`CLEANING_END_TIME\` (default: \`10:30\`) - When cleaning ends
+- \`NEAR_SIDE_EMOJI\` (default: \`🏡\`) - Emoji for your home side
+- \`FAR_SIDE_EMOJI\` (default: \`🌳\`) - Emoji for opposite side
+
+## How It Works
+
+1. Fetches NYC's official ASP suspension calendar (ICS)
+2. Scrapes NYC DOT website for emergency suspensions
+3. Analyzes your weekly parking schedule
+4. Sends strategic Slack notifications at key times
+
+## Deployment
+
+This code is auto-generated from the [source repository](https://github.com/saadiq/nyc-asp-slack-val-town).
+
+**Do not edit \`index.ts\` directly** - changes will be overwritten on next deployment.
+
+To contribute or modify:
+1. Clone the [GitHub repo](https://github.com/saadiq/nyc-asp-slack-val-town)
+2. Edit files in \`src/\`
+3. Run \`bun run deploy\` to build and push
+
+## Schedule
+
+Set this Val to run as an **Interval Val** with schedule: \`0 * * * *\` (every hour)
+
+## License
+
+MIT - See [GitHub repository](https://github.com/saadiq/nyc-asp-slack-val-town) for details
+`;
+
+  await writeFile(readmePath, readme, 'utf-8');
+  console.log(`   Generated: ${readmePath}`);
 }
 
 // Run the build
