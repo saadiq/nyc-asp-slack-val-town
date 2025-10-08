@@ -6,7 +6,9 @@
     "test": "vitest",
     "test:watch": "vitest --watch",
     "test:scenarios": "bun scripts/test-scenarios.ts",
-    "deploy": "./deploy.sh"
+    "build": "bun scripts/build-val.ts",
+    "deploy": "./deploy.sh",
+    "deploy:watch": "cd nyc-asp-val && vt watch"
   },
   "dependencies": {
     "date-fns": "^3.0.0",

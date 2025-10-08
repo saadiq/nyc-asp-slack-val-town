@@ -80,15 +80,31 @@ bun src/main.ts
 
 ### 5. Deploy to Val Town
 
-#### Option A: Using Val Town CLI (Recommended)
+#### Prerequisites
 
-Install the Val Town CLI if you haven't already:
+Install the Val Town CLI:
 
 ```bash
 deno install -Agf https://esm.town/v/std/vt
 ```
 
-**Initial Deployment:**
+#### Initial Setup (First Time Only)
+
+Create your Val on Val Town:
+
+```bash
+# Create a new Val
+vt create nyc-asp-bot nyc-asp-val
+
+# Or clone an existing Val
+vt clone username/val-name
+```
+
+This creates a `nyc-asp-val/` directory that's linked to your Val Town account.
+
+#### Deploy Updates
+
+The deployment script automatically builds and pushes your code:
 
 ```bash
 bun run deploy
@@ -96,49 +112,39 @@ bun run deploy
 ./deploy.sh
 ```
 
-The script will:
-1. Detect `vt` CLI and offer automated deployment
-2. Prompt you for a Val name (e.g., `nyc-asp-bot`)
-3. Create the Val automatically
-4. Open it in your browser
+This will:
+1. Bundle all files from `src/` into `nyc-asp-val/index.ts`
+2. Transform imports to use `npm:package@version` syntax
+3. Verify file size is under Val Town's 80KB limit
+4. Push to Val Town (if you confirm)
 
-After deployment:
-- Add environment secrets in Val Town UI
-- Configure as an Interval Val to run every hour
-
-**Updating Existing Val:**
-
-If you've already deployed and want to push updates:
+**Manual build (without deploy):**
 
 ```bash
-# Copy updated code to cloned Val directory
-cp val-town.ts nyc-asp-val/index.ts
-
-# Push to Val Town
-cd nyc-asp-val && vt push
+bun run build
 ```
 
-Or use watch mode for automatic syncing:
+#### Development Workflow
+
+For continuous development with auto-sync:
 
 ```bash
+bun run deploy:watch
+# or
 cd nyc-asp-val && vt watch
 ```
 
-#### Option B: Manual Deployment
+This watches for changes and automatically pushes to Val Town.
 
-If you prefer manual deployment or don't have the CLI:
+#### After Deployment
 
-```bash
-./deploy.sh
-```
+1. Go to https://val.town and open your Val
+2. Add environment secrets:
+   - `SLACK_WEBHOOK_URL` (required)
+   - `NEAR_SIDE_DAYS`, `FAR_SIDE_DAYS` (optional)
+3. Configure as an Interval Val to run every hour: `0 * * * *`
 
-Choose option 2 for clipboard copy, then:
-1. Go to https://val.town and create a new **Interval Val**
-2. Paste the code from clipboard
-3. Add environment secrets (same values from step 3)
-4. Set schedule to run every hour: `0 * * * *`
-
-**Note:** The Val Town version (~17KB) uses npm import syntax (`npm:package@version`) to keep dependencies external, avoiding the 80KB code size limit.
+**Note:** The build script keeps dependencies external using npm import syntax (`npm:package@version`), avoiding Val Town's 80KB code size limit.
 
 ## Development
 

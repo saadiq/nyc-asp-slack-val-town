@@ -1,133 +1,74 @@
 #!/bin/bash
 set -e
 
-echo "📦 Preparing NYC ASP Bot for Val Town deployment..."
+echo "📦 Building NYC ASP Bot for Val Town deployment..."
 echo ""
 
-# Check if val-town.ts exists
-if [ ! -f "val-town.ts" ]; then
-  echo "❌ Error: val-town.ts not found"
+# Build the Val Town bundle
+echo "🔨 Running build script..."
+bun scripts/build-val.ts
+
+if [ $? -ne 0 ]; then
+  echo "❌ Build failed"
   exit 1
 fi
 
-# Get file size
-FILE_SIZE=$(wc -c < val-town.ts | tr -d ' ')
-FILE_SIZE_KB=$((FILE_SIZE / 1024))
-
-echo "✅ Deployment file: val-town.ts"
-echo "   Size: ${FILE_SIZE} bytes (~${FILE_SIZE_KB}KB)"
-echo "   Val Town limit: 80,000 bytes (80KB)"
 echo ""
 
-if [ $FILE_SIZE -gt 80000 ]; then
-  echo "⚠️  WARNING: File size exceeds Val Town's 80KB limit!"
+# Check if nyc-asp-val directory exists
+if [ ! -d "nyc-asp-val" ]; then
+  echo "❌ Directory 'nyc-asp-val' not found."
+  echo ""
+  echo "First-time setup required:"
+  echo "1. Install Val Town CLI: deno install -Agf https://esm.town/v/std/vt"
+  echo "2. Create your Val: vt create nyc-asp-bot nyc-asp-val"
+  echo "   (or clone existing: vt clone username/val-name)"
+  echo ""
+  echo "Then re-run this script."
   exit 1
 fi
 
 # Check if vt CLI is installed
-if command -v vt &> /dev/null; then
-  echo "🚀 Val Town CLI detected!"
+if ! command -v vt &> /dev/null; then
+  echo "⚠️  Val Town CLI not found."
   echo ""
-  echo "Choose deployment method:"
-  echo "  1) Deploy with vt CLI (recommended)"
-  echo "  2) Copy to clipboard for manual paste"
-  echo ""
-  read -p "Enter choice [1-2]: " choice
-
-  case $choice in
-    1)
-      echo ""
-      read -p "Enter Val name (e.g., nyc-asp-bot): " VAL_NAME
-
-      if [ -z "$VAL_NAME" ]; then
-        echo "❌ Val name is required"
-        exit 1
-      fi
-
-      # Create a temporary directory for vt
-      TEMP_DIR=$(mktemp -d)
-      cp val-town.ts "$TEMP_DIR/index.ts"
-
-      echo ""
-      echo "Creating Val '$VAL_NAME'..."
-
-      # Create the Val (this will prompt for privacy settings if not specified)
-      if vt create "$VAL_NAME" "$TEMP_DIR" --upload-if-exists; then
-        echo ""
-        echo "✅ Val created successfully!"
-        echo ""
-        echo "📝 Next steps:"
-        echo "1. Set environment secrets in Val Town:"
-        echo "   - SLACK_WEBHOOK_URL (required)"
-        echo "   - NEAR_SIDE_DAYS, FAR_SIDE_DAYS (optional)"
-        echo ""
-        echo "2. Configure the Val as an Interval Val to run every hour"
-        echo ""
-        echo "3. Open in browser:"
-        vt browse
-      else
-        echo ""
-        echo "❌ Failed to create Val. It may already exist."
-        echo "   To update an existing Val, clone it first:"
-        echo "   vt clone username/$VAL_NAME"
-        echo "   cd $VAL_NAME"
-        echo "   cp ../val-town.ts index.ts"
-        echo "   vt push"
-      fi
-
-      # Cleanup
-      rm -rf "$TEMP_DIR"
-      ;;
-    2)
-      # Copy to clipboard
-      if command -v pbcopy &> /dev/null; then
-        cat val-town.ts | pbcopy
-        echo "📋 Code copied to clipboard!"
-      else
-        echo "ℹ️  Clipboard not available (pbcopy not found)"
-      fi
-
-      echo ""
-      echo "🚀 Manual deployment:"
-      echo "1. Go to https://val.town"
-      echo "2. Create a new Interval Val"
-      echo "3. Paste the code (or copy from val-town.ts)"
-      ;;
-    *)
-      echo "Invalid choice"
-      exit 1
-      ;;
-  esac
-else
-  # No vt CLI, fall back to clipboard method
-  echo "ℹ️  Val Town CLI not found. Install with:"
+  echo "Install with:"
   echo "   deno install -Agf https://esm.town/v/std/vt"
   echo ""
-
-  # Try to copy to clipboard (macOS)
-  if command -v pbcopy &> /dev/null; then
-    cat val-town.ts | pbcopy
-    echo "📋 Code copied to clipboard!"
-  fi
-
-  echo ""
-  echo "🚀 Manual deployment:"
-  echo "1. Go to https://val.town"
-  echo "2. Create a new Interval Val"
-  echo "3. Paste the code (or copy from val-town.ts)"
+  echo "After installing, you can push with:"
+  echo "   cd nyc-asp-val && vt push"
+  exit 1
 fi
 
+# Ask user if they want to push
+echo "📤 Ready to push to Val Town!"
 echo ""
-echo "📝 Required environment variables:"
-echo "   - SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
-echo ""
-echo "📝 Optional (with defaults):"
-echo "   - NEAR_SIDE_DAYS=Mon,Thu"
-echo "   - FAR_SIDE_DAYS=Tue,Fri"
-echo "   - CLEANING_START_TIME=09:00"
-echo "   - CLEANING_END_TIME=10:30"
-echo "   - NEAR_SIDE_EMOJI=🏠"
-echo "   - FAR_SIDE_EMOJI=🌳"
-echo ""
-echo "💡 The Val uses npm imports (npm:package@version) to keep dependencies external"
-echo "📖 See README.md for full deployment instructions"
+read -p "Push to Val Town now? [y/N]: " push_confirm
+
+if [[ "$push_confirm" =~ ^[Yy]$ ]]; then
+  echo ""
+  echo "Pushing to Val Town..."
+  cd nyc-asp-val && vt push
+
+  if [ $? -eq 0 ]; then
+    echo ""
+    echo "✅ Successfully deployed to Val Town!"
+    echo ""
+    echo "📝 Don't forget to configure environment variables in Val Town UI:"
+    echo "   - SLACK_WEBHOOK_URL (required)"
+    echo "   - NEAR_SIDE_DAYS, FAR_SIDE_DAYS (optional)"
+    echo ""
+    echo "🌐 Open in browser: vt browse"
+  else
+    echo ""
+    echo "❌ Push failed. Check the error above."
+    exit 1
+  fi
+else
+  echo ""
+  echo "ℹ️  Build complete. To push later, run:"
+  echo "   cd nyc-asp-val && vt push"
+  echo ""
+  echo "Or use watch mode for automatic syncing:"
+  echo "   cd nyc-asp-val && vt watch"
+fi
