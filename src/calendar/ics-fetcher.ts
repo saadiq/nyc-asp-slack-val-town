@@ -7,6 +7,7 @@ const CACHE_KEY = 'nyc-asp-calendar-cache';
 
 // In Val Town, use @std/blob for storage. For local dev, use in-memory cache.
 let memoryCache: CalendarCache | null = null;
+let valBlobCache: any = undefined; // undefined = not checked, null = not available, object = available
 
 /**
  * Get Val Town blob storage if available
@@ -14,11 +15,19 @@ let memoryCache: CalendarCache | null = null;
  * In local dev, returns null and we'll use in-memory cache
  */
 async function getValBlob() {
+  // Return cached result if we've already checked
+  if (valBlobCache !== undefined) {
+    return valBlobCache;
+  }
+
   try {
     // @ts-ignore - Val Town specific import
     const blobModule = await import('https://esm.town/v/std/blob');
-    return blobModule.blob;
+    valBlobCache = blobModule.blob;
+    return valBlobCache;
   } catch {
+    // Val Town blob not available (expected in local dev)
+    valBlobCache = null;
     return null;
   }
 }
