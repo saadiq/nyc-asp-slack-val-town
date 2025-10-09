@@ -142,7 +142,30 @@ This watches for changes and automatically pushes to Val Town.
 2. Add environment secrets:
    - `SLACK_WEBHOOK_URL` (required)
    - `NEAR_SIDE_DAYS`, `FAR_SIDE_DAYS` (optional)
-3. Configure as an Interval Val to run every hour: `0 * * * *`
+   - `VAL_TOWN_API_TOKEN` (optional, for automated schedule setting)
+3. **⚠️ IMPORTANT: Configure the cron schedule to `10 * * * *`**
+
+#### Setting the Cron Schedule
+
+Val Town deployments may reset your cron schedule. After each deployment, verify it's set correctly:
+
+**Option 1 - Automated (Recommended):**
+
+```bash
+bun run set-schedule
+```
+
+This requires `VAL_TOWN_API_TOKEN` in your `.env`:
+1. Go to https://www.val.town/settings/api
+2. Click "Create API Token"
+3. Give it "Vals: read and write" permissions
+4. Add to `.env`: `VAL_TOWN_API_TOKEN=your_token_here`
+
+**Option 2 - Manual:**
+
+1. Open your val in the Val Town UI
+2. Click the cron schedule selector in the top right corner
+3. Set to: `10 * * * *` (every hour at 10 minutes past)
 
 **Note:** The build script keeps dependencies external using npm import syntax (`npm:package@version`), avoiding Val Town's 80KB code size limit.
 
@@ -181,12 +204,20 @@ Edit environment variables to customize for your street:
 1. Check Val Town logs for errors
 2. Verify Slack webhook URL is correct
 3. Test webhook: `curl -X POST -d '{"text":"test"}' YOUR_WEBHOOK_URL`
+4. **Verify cron schedule is set to `10 * * * *`** (Val Town deployments may reset it)
 
 ### Wrong parking advice
 
 1. Verify day configuration in env vars
 2. Check ICS calendar is being fetched
 3. Review week view in logs
+
+### Cron schedule keeps resetting
+
+Val Town may reset cron schedules during deployments. To prevent this:
+1. Use `bun run set-schedule` after each deployment
+2. Or manually verify the schedule in the Val Town UI
+3. Consider adding `VAL_TOWN_API_TOKEN` to your `.env` for automated schedule management
 
 ## License
 

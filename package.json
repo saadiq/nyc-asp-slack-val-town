@@ -8,7 +8,8 @@
     "test:scenarios": "bun scripts/test-scenarios.ts",
     "build": "bun scripts/build-val.ts",
     "deploy": "./deploy.sh",
-    "deploy:watch": "cd nyc-asp-val && vt watch"
+    "deploy:watch": "cd nyc-asp-val && vt watch",
+    "set-schedule": "bun scripts/set-val-schedule.ts"
   },
   "dependencies": {
     "date-fns": "^3.0.0",

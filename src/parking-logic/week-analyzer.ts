@@ -84,7 +84,7 @@ export function optimizeParkingSides(weekView: WeekView): WeekView {
     if (days[i].parkOnSide !== null) continue;
 
     // Find next day with cleaning
-    const nextCleaningDay = findNextCleaningDay(days, i);
+    const nextCleaningDay = findNextDayWithCleaning(days, i);
 
     if (nextCleaningDay) {
       // Park on the side needed for next cleaning
@@ -100,7 +100,7 @@ export function optimizeParkingSides(weekView: WeekView): WeekView {
   return { ...weekView, days };
 }
 
-function findNextCleaningDay(days: DayStatus[], startIndex: number): DayStatus | null {
+function findNextDayWithCleaning(days: DayStatus[], startIndex: number): DayStatus | null {
   for (let i = startIndex + 1; i < days.length; i++) {
     if (days[i].parkOnSide !== null) {
       return days[i];
