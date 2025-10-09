@@ -29,9 +29,20 @@ export function getDayOfWeek(date: Date): DayOfWeek {
 
 /**
  * Get the Monday of the current week (for week view)
+ * Returns a Date object representing Monday at noon in NYC timezone
+ * (using noon to avoid any timezone edge cases)
  */
 export function getThisMonday(now: Date = getNycNow()): Date {
-  return startOfWeek(now, { weekStartsOn: 1 }); // 1 = Monday
+  const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Sunday should go back 6 days
+
+  // Create a date representing Monday at noon NYC time
+  const monday = new Date(now);
+  monday.setDate(now.getDate() - daysFromMonday);
+  // Set to noon to avoid any timezone conversion issues
+  monday.setHours(12, 0, 0, 0);
+
+  return monday;
 }
 
 /**
@@ -39,7 +50,9 @@ export function getThisMonday(now: Date = getNycNow()): Date {
  */
 export function getThisFriday(now: Date = getNycNow()): Date {
   const monday = getThisMonday(now);
-  return addDays(monday, 4); // Mon + 4 = Fri
+  const friday = new Date(monday);
+  friday.setDate(monday.getDate() + 4);
+  return friday;
 }
 
 /**
@@ -47,7 +60,11 @@ export function getThisFriday(now: Date = getNycNow()): Date {
  */
 export function getWeekdays(now: Date = getNycNow()): Date[] {
   const monday = getThisMonday(now);
-  return [0, 1, 2, 3, 4].map(offset => addDays(monday, offset));
+  return [0, 1, 2, 3, 4].map(offset => {
+    const day = new Date(monday);
+    day.setDate(monday.getDate() + offset);
+    return day;
+  });
 }
 
 /**

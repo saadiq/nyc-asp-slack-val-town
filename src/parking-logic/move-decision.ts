@@ -1,6 +1,6 @@
 // src/parking-logic/move-decision.ts
 import { Config, WeekView, DayStatus, MoveDecision, Side } from '../types';
-import { getNycNow, getDayOfWeek, isSameDayNyc } from '../utils/date-utils';
+import { getNycNow, getDayOfWeek, isSameDayNyc, formatNycDate } from '../utils/date-utils';
 
 /**
  * Determine if a move reminder should be sent today at 10 AM
@@ -17,44 +17,37 @@ export function shouldSendMoveReminder(
   config: Config
 ): MoveDecision {
   const today = getNycNow();
+  const todayDow = getDayOfWeek(today);
+
   const todayStatus = weekView.days.find(d => isSameDayNyc(d.date, today));
 
-  console.log('[Move Decision] Today:', todayStatus?.dayOfWeek);
-
   if (!todayStatus) {
-    console.log('[Move Decision] No today status found');
     return { shouldMove: false };
   }
 
   // Not a cleaning day? No move needed
   if (!todayStatus.hasNearSideCleaning && !todayStatus.hasFarSideCleaning) {
-    console.log('[Move Decision] Not a cleaning day');
     return { shouldMove: false };
   }
 
   // Suspended today? No move needed
   if (todayStatus.isSuspended) {
-    console.log('[Move Decision] Suspended today');
     return { shouldMove: false };
   }
 
   // Is it Friday? Skip (weekend coming)
   if (todayStatus.dayOfWeek === 'Fri') {
-    console.log('[Move Decision] Friday - skipping');
     return { shouldMove: false };
   }
 
   // Where is car now? (opposite of today's cleaning)
   const currentSide: Side = todayStatus.hasNearSideCleaning ? 'far' : 'near';
-  console.log('[Move Decision] Current side:', currentSide);
 
   // Find next cleaning day
   const nextCleaningDay = findNextCleaningDay(weekView, todayStatus);
-  console.log('[Move Decision] Next cleaning day:', nextCleaningDay?.dayOfWeek, 'parkOn:', nextCleaningDay?.parkOnSide);
 
   if (!nextCleaningDay) {
     // No more cleaning this week
-    console.log('[Move Decision] No next cleaning day found');
     return { shouldMove: false };
   }
 
@@ -63,12 +56,10 @@ export function shouldSendMoveReminder(
 
   if (!targetSide || currentSide === targetSide) {
     // Already on correct side
-    console.log('[Move Decision] Already on correct side. Current:', currentSide, 'Target:', targetSide);
     return { shouldMove: false };
   }
 
   // Need to move!
-  console.log('[Move Decision] NEED TO MOVE! From:', currentSide, 'To:', targetSide);
   return {
     shouldMove: true,
     currentSide,

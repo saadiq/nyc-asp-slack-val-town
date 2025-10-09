@@ -23,13 +23,9 @@ export async function main() {
     const dayOfWeek = getDayOfWeek(now);
 
     console.log(`Running NYC ASP Bot at ${formatNycDate(now, 'yyyy-MM-dd HH:mm')}`);
-    console.log(`[DEBUG] Hour: ${hour}, Day: ${dayOfWeek}`);
 
     // Check for force run override
     const forceRun = process.env.FORCE_RUN?.toLowerCase();
-    if (forceRun) {
-      console.log(`[DEBUG] FORCE_RUN=${forceRun} - overriding schedule`);
-    }
 
     // Sunday 5 AM - Weekly summary
     if (forceRun === 'summary' || (dayOfWeek === 'Sun' && hour === 5)) {
@@ -37,9 +33,7 @@ export async function main() {
     }
 
     // Mon-Thu 10 AM - Move reminder
-    console.log(`[DEBUG] Checking move reminder condition: hour=${hour} (===10? ${hour === 10}), day=${dayOfWeek}, includes? ${['Mon', 'Tue', 'Wed', 'Thu'].includes(dayOfWeek)}`);
     if (forceRun === 'move' || (hour === 10 && ['Mon', 'Tue', 'Wed', 'Thu'].includes(dayOfWeek))) {
-      console.log('[DEBUG] Running checkAndSendMoveReminder');
       await checkAndSendMoveReminder(config);
     }
 
