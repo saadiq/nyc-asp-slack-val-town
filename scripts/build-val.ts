@@ -226,7 +226,7 @@ Set these in the Val Town UI:
 
 ### Optional Environment Variables
 
-Customize for your street's cleaning schedule:
+**Cleaning Schedule:**
 
 - \`NEAR_SIDE_DAYS\` (default: \`Mon,Thu\`) - Days when your home side has cleaning
 - \`FAR_SIDE_DAYS\` (default: \`Tue,Fri\`) - Days when opposite side has cleaning
@@ -234,6 +234,15 @@ Customize for your street's cleaning schedule:
 - \`CLEANING_END_TIME\` (default: \`10:30\`) - When cleaning ends
 - \`NEAR_SIDE_EMOJI\` (default: \`🏡\`) - Emoji for your home side
 - \`FAR_SIDE_EMOJI\` (default: \`🌳\`) - Emoji for opposite side
+
+**Testing/Development:**
+
+- \`FORCE_RUN\` - Override scheduled run times for testing:
+  - Leave empty/unset for normal operation
+  - Set to \`move\` to force 10 AM move reminder check
+  - Set to \`summary\` to force weekly summary generation
+  - Set to \`emergency\` to force emergency suspension check
+  - **Remove this variable for production use!**
 
 ## How It Works
 

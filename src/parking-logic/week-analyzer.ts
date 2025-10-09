@@ -7,8 +7,7 @@ import { isSuspended } from './suspension-checker';
  * Build week view with parking status for each day
  */
 export async function buildWeekView(
-  config: Config,
-  storage?: any
+  config: Config
 ): Promise<WeekView> {
   const weekdays = getWeekdays();
   const days: DayStatus[] = [];
@@ -21,7 +20,7 @@ export async function buildWeekView(
     const hasFarSideCleaning = config.farSideDays.includes(dayOfWeek);
 
     // Check if suspended
-    const { suspended, reason } = await isSuspended(date, storage);
+    const { suspended, reason } = await isSuspended(date);
 
     // Determine where car should be parked
     const parkOnSide = determineParkingSide(

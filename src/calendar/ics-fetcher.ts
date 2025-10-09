@@ -9,6 +9,21 @@ const CACHE_KEY = 'nyc-asp-calendar-cache';
 let memoryCache: CalendarCache | null = null;
 
 /**
+ * Get Val Town blob storage if available
+ * In Val Town environment, this will import the blob module
+ * In local dev, returns null and we'll use in-memory cache
+ */
+async function getValBlob() {
+  try {
+    // @ts-ignore - Val Town specific import
+    const blobModule = await import('https://esm.town/v/std/blob');
+    return blobModule.blob;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Fetch the ICS calendar file for a given year
  */
 export async function fetchIcsFile(year: number): Promise<string> {
@@ -32,14 +47,13 @@ export async function fetchIcsFile(year: number): Promise<string> {
  * Get ICS content, using cache if available and fresh
  */
 export async function getIcsContent(
-  forceRefresh: boolean = false,
-  storage?: any // Val Town blob storage
+  forceRefresh: boolean = false
 ): Promise<string> {
   const currentYear = new Date().getFullYear();
 
   // Check cache first (unless forcing refresh)
   if (!forceRefresh) {
-    const cached = await getCachedCalendar(storage);
+    const cached = await getCachedCalendar();
     if (cached && cached.icsContent && isCacheFresh(cached)) {
       console.log('Using cached ICS calendar');
       return cached.icsContent;
@@ -51,7 +65,7 @@ export async function getIcsContent(
   const icsContent = await fetchIcsFile(currentYear);
 
   // Update cache
-  await setCachedCalendar({ icsContent, fetchedAt: new Date() }, storage);
+  await setCachedCalendar({ icsContent, fetchedAt: new Date() });
 
   return icsContent;
 }
@@ -71,12 +85,14 @@ function isCacheFresh(cache: Partial<CalendarCache>): boolean {
 /**
  * Get cached calendar from storage
  */
-async function getCachedCalendar(storage?: any): Promise<Partial<CalendarCache> | null> {
-  if (storage) {
+async function getCachedCalendar(): Promise<Partial<CalendarCache> | null> {
+  const blob = await getValBlob();
+
+  if (blob) {
     // Val Town blob storage
     try {
-      const blob = await storage.getJSON(CACHE_KEY);
-      return blob || null;
+      const cached = await blob.getJSON(CACHE_KEY);
+      return cached || null;
     } catch {
       return null;
     }
@@ -90,12 +106,13 @@ async function getCachedCalendar(storage?: any): Promise<Partial<CalendarCache> 
  * Save calendar to cache
  */
 async function setCachedCalendar(
-  cache: Partial<CalendarCache>,
-  storage?: any
+  cache: Partial<CalendarCache>
 ): Promise<void> {
-  if (storage) {
+  const blob = await getValBlob();
+
+  if (blob) {
     // Val Town blob storage
-    await storage.setJSON(CACHE_KEY, cache);
+    await blob.setJSON(CACHE_KEY, cache);
   } else {
     // In-memory cache for local dev
     memoryCache = cache as CalendarCache;

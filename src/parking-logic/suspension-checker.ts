@@ -10,13 +10,13 @@ let lastIcsFetch: Date | null = null;
 /**
  * Initialize suspension data (fetch ICS on first call or weekly)
  */
-async function ensureSuspensionDataLoaded(storage?: any): Promise<void> {
+async function ensureSuspensionDataLoaded(): Promise<void> {
   const now = getNycNow();
   const needsRefresh = !lastIcsFetch ||
     (now.getTime() - lastIcsFetch.getTime()) > 7 * 24 * 60 * 60 * 1000;
 
   if (needsRefresh) {
-    const icsContent = await getIcsContent(false, storage);
+    const icsContent = await getIcsContent(false);
     cachedSuspensionDates = parseIcsSuspensions(icsContent);
     lastIcsFetch = now;
   }
@@ -27,10 +27,9 @@ async function ensureSuspensionDataLoaded(storage?: any): Promise<void> {
  * Combines ICS calendar data + website scraping for today
  */
 export async function isSuspended(
-  date: Date,
-  storage?: any
+  date: Date
 ): Promise<{ suspended: boolean; reason?: string }> {
-  await ensureSuspensionDataLoaded(storage);
+  await ensureSuspensionDataLoaded();
 
   // Check ICS calendar first
   if (isSuspendedByIcs(date, cachedSuspensionDates)) {
@@ -60,8 +59,8 @@ export async function isSuspended(
 /**
  * Get all suspension dates from ICS (for week view)
  */
-export async function getSuspensionDates(storage?: any): Promise<string[]> {
-  await ensureSuspensionDataLoaded(storage);
+export async function getSuspensionDates(): Promise<string[]> {
+  await ensureSuspensionDataLoaded();
   return cachedSuspensionDates;
 }
 

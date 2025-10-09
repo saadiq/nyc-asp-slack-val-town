@@ -15,7 +15,7 @@ import { sendToSlack } from './slack/webhook';
 /**
  * Main entry point - called by Val Town scheduler every hour
  */
-export async function main(storage?: any) {
+export async function main() {
   try {
     const config = loadConfig();
     const now = getNycNow();
@@ -23,20 +23,29 @@ export async function main(storage?: any) {
     const dayOfWeek = getDayOfWeek(now);
 
     console.log(`Running NYC ASP Bot at ${formatNycDate(now, 'yyyy-MM-dd HH:mm')}`);
+    console.log(`[DEBUG] Hour: ${hour}, Day: ${dayOfWeek}`);
+
+    // Check for force run override
+    const forceRun = process.env.FORCE_RUN?.toLowerCase();
+    if (forceRun) {
+      console.log(`[DEBUG] FORCE_RUN=${forceRun} - overriding schedule`);
+    }
 
     // Sunday 5 AM - Weekly summary
-    if (dayOfWeek === 'Sun' && hour === 5) {
-      await sendWeeklySummary(config, storage);
+    if (forceRun === 'summary' || (dayOfWeek === 'Sun' && hour === 5)) {
+      await sendWeeklySummary(config);
     }
 
     // Mon-Thu 10 AM - Move reminder
-    if (hour === 10 && ['Mon', 'Tue', 'Wed', 'Thu'].includes(dayOfWeek)) {
-      await checkAndSendMoveReminder(config, storage);
+    console.log(`[DEBUG] Checking move reminder condition: hour=${hour} (===10? ${hour === 10}), day=${dayOfWeek}, includes? ${['Mon', 'Tue', 'Wed', 'Thu'].includes(dayOfWeek)}`);
+    if (forceRun === 'move' || (hour === 10 && ['Mon', 'Tue', 'Wed', 'Thu'].includes(dayOfWeek))) {
+      console.log('[DEBUG] Running checkAndSendMoveReminder');
+      await checkAndSendMoveReminder(config);
     }
 
     // Mon-Fri 5 AM - Emergency check (excluding Sunday to avoid collision with weekly summary)
-    if (hour === 5 && ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(dayOfWeek)) {
-      await checkEmergencySuspension(config, storage);
+    if (forceRun === 'emergency' || (hour === 5 && ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(dayOfWeek))) {
+      await checkEmergencySuspension(config);
     }
 
     console.log('NYC ASP Bot run completed');
@@ -58,10 +67,10 @@ export async function main(storage?: any) {
 /**
  * Send weekly parking strategy summary
  */
-async function sendWeeklySummary(config: any, storage?: any) {
+async function sendWeeklySummary(config: any) {
   console.log('Sending weekly summary...');
 
-  const rawWeekView = await buildWeekView(config, storage);
+  const rawWeekView = await buildWeekView(config);
   const weekView = optimizeParkingSides(rawWeekView);
 
   const message = buildWeeklySummary(weekView, config);
@@ -73,8 +82,8 @@ async function sendWeeklySummary(config: any, storage?: any) {
 /**
  * Check if move reminder should be sent and send if needed
  */
-async function checkAndSendMoveReminder(config: any, storage?: any) {
-  const rawWeekView = await buildWeekView(config, storage);
+async function checkAndSendMoveReminder(config: any) {
+  const rawWeekView = await buildWeekView(config);
   const weekView = optimizeParkingSides(rawWeekView);
 
   const decision = shouldSendMoveReminder(weekView, config);
@@ -92,7 +101,7 @@ async function checkAndSendMoveReminder(config: any, storage?: any) {
 /**
  * Check for emergency suspension and alert if found
  */
-async function checkEmergencySuspension(config: any, storage?: any) {
+async function checkEmergencySuspension(config: any) {
   const today = getNycNow();
   const todayDow = getDayOfWeek(today);
 
@@ -103,7 +112,7 @@ async function checkEmergencySuspension(config: any, storage?: any) {
     return;
   }
 
-  const { suspended, reason } = await isSuspended(today, storage);
+  const { suspended, reason } = await isSuspended(today);
 
   // Check if this is an emergency (not a scheduled holiday)
   // This catches snow/weather emergencies and other unplanned suspensions

@@ -54,13 +54,22 @@ bun install
 Create `.env`:
 
 ```bash
+# Required
 SLACK_WEBHOOK_URL=https://hooks.slack.com/services/YOUR/WEBHOOK/URL
+
+# Optional - Street Cleaning Schedule
 NEAR_SIDE_DAYS=Mon,Thu
 FAR_SIDE_DAYS=Tue,Fri
 CLEANING_START_TIME=09:00
 CLEANING_END_TIME=10:30
 NEAR_SIDE_EMOJI=🏠
 FAR_SIDE_EMOJI=🌳
+
+# Optional - Testing/Development
+FORCE_RUN=  # Leave empty for normal operation
+            # Set to 'move' to force 10 AM move reminder check
+            # Set to 'summary' to force weekly summary generation
+            # Set to 'emergency' to force emergency suspension check
 ```
 
 ### 4. Test Locally
@@ -197,6 +206,43 @@ Edit environment variables to customize for your street:
 - `FAR_SIDE_DAYS`: Days with cleaning on opposite side
 - `CLEANING_START_TIME` / `CLEANING_END_TIME`: Cleaning hours
 
+## Testing
+
+You can test different notification types without waiting for scheduled times using the `FORCE_RUN` environment variable:
+
+### Test Move Reminder (10 AM check)
+```bash
+# In Val Town: Set environment variable FORCE_RUN=move
+# Locally:
+FORCE_RUN=move bun src/main.ts
+```
+
+This will:
+- Skip the hour check (normally only runs at 10 AM)
+- Analyze today's parking situation
+- Send move reminder if needed
+- Show debug logs about the decision
+
+### Test Weekly Summary
+```bash
+# In Val Town: Set environment variable FORCE_RUN=summary
+# Locally:
+FORCE_RUN=summary bun src/main.ts
+```
+
+This generates the full weekly parking strategy message with visual calendar.
+
+### Test Emergency Check
+```bash
+# In Val Town: Set environment variable FORCE_RUN=emergency
+# Locally:
+FORCE_RUN=emergency bun src/main.ts
+```
+
+This checks for emergency ASP suspensions (snow, weather, etc.).
+
+**Important:** Remove or unset `FORCE_RUN` for normal production operation.
+
 ## Troubleshooting
 
 ### No messages received
@@ -205,12 +251,21 @@ Edit environment variables to customize for your street:
 2. Verify Slack webhook URL is correct
 3. Test webhook: `curl -X POST -d '{"text":"test"}' YOUR_WEBHOOK_URL`
 4. **Verify cron schedule is set to `10 * * * *`** (Val Town deployments may reset it)
+5. Check that `FORCE_RUN` is not set (should be empty/unset in production)
+
+### Testing specific notification types
+
+Use the `FORCE_RUN` environment variable to test without waiting for scheduled times:
+- `FORCE_RUN=move` - Test move reminder logic
+- `FORCE_RUN=summary` - Test weekly summary
+- `FORCE_RUN=emergency` - Test emergency alerts
 
 ### Wrong parking advice
 
 1. Verify day configuration in env vars
 2. Check ICS calendar is being fetched
 3. Review week view in logs
+4. Use `FORCE_RUN=summary` to see the full weekly analysis
 
 ### Cron schedule keeps resetting
 
