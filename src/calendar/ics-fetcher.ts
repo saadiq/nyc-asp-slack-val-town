@@ -1,5 +1,6 @@
 // src/calendar/ics-fetcher.ts
 import { retry } from '../utils/retry';
+import { getNycNow, formatNycDate } from '../utils/date-utils';
 import { CalendarCache } from '../types';
 
 const ICS_URL_TEMPLATE = 'https://www.nyc.gov/html/dot/downloads/misc/{year}-alternate-side.ics';
@@ -59,7 +60,6 @@ export async function getIcsContent(
   forceRefresh: boolean = false
 ): Promise<string> {
   // Get current year in NYC timezone to handle New Year's Eve edge case
-  const { getNycNow, formatNycDate } = await import('../utils/date-utils');
   const currentYear = parseInt(formatNycDate(getNycNow(), 'yyyy'), 10);
 
   // Check cache first (unless forcing refresh)

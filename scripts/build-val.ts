@@ -88,7 +88,8 @@ async function buildValTownBundle() {
 `);
 
   // Collect all imports from source files
-  const externalImports = new Set<string>();
+  // Use a Map to track imports by package, merging named imports
+  const externalImports = new Map<string, Set<string>>();
   const processedSources: string[] = [];
 
   for (const file of SOURCE_FILES) {
@@ -98,15 +99,30 @@ async function buildValTownBundle() {
     let content = await readFile(filePath, 'utf-8');
 
     // Extract and collect external imports
-    const importRegex = /^import\s+(?:{[^}]+}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/gm;
+    const importRegex = /^import\s+({[^}]+}|\*\s+as\s+\w+|\w+)\s+from\s+['"]([^'"]+)['"]/gm;
     let match;
 
     while ((match = importRegex.exec(content)) !== null) {
-      const importPath = match[1];
+      const importSpecifiers = match[1];
+      const importPath = match[2];
 
       // If it's an external package (not a relative import)
       if (!importPath.startsWith('.')) {
-        externalImports.add(match[0]);
+        if (!externalImports.has(importPath)) {
+          externalImports.set(importPath, new Set());
+        }
+
+        // Extract named imports from { ... }
+        if (importSpecifiers.startsWith('{')) {
+          const namedImports = importSpecifiers
+            .slice(1, -1) // Remove { }
+            .split(',')
+            .map(s => s.trim());
+          namedImports.forEach(imp => externalImports.get(importPath)!.add(imp));
+        } else {
+          // Default or namespace import - keep as-is
+          externalImports.get(importPath)!.add(importSpecifiers);
+        }
       }
     }
 
@@ -138,18 +154,26 @@ async function buildValTownBundle() {
   sections.push('// EXTERNAL DEPENDENCIES');
   sections.push('// ============================================================================\n');
 
-  for (const importStatement of Array.from(externalImports).sort()) {
-    let transformed = importStatement;
+  // Convert collected imports to import statements, deduplicated
+  for (const [pkgPath, specifiers] of Array.from(externalImports.entries()).sort()) {
+    const specifiersArray = Array.from(specifiers);
 
-    // Transform package imports to npm: syntax
+    // All specifiers are named imports (we extracted them from { ... })
+    const namedImports = specifiersArray;
+
+    let importStatement = 'import { ' + namedImports.join(', ') + ' }';
+
+    // Transform to npm: syntax
+    let pkgWithVersion = pkgPath;
     for (const [pkg, version] of Object.entries(NPM_DEPENDENCIES)) {
-      if (importStatement.includes(`from '${pkg}`)) {
-        transformed = importStatement.replace(`from '${pkg}`, `from 'npm:${pkg}@${version}`);
-        transformed = transformed.replace(`from "${pkg}`, `from "npm:${pkg}@${version}`);
+      if (pkgPath === pkg) {
+        pkgWithVersion = `npm:${pkg}@${version}`;
+        break;
       }
     }
 
-    sections.push(transformed);
+    importStatement += ` from '${pkgWithVersion}'`;
+    sections.push(importStatement);
   }
 
   sections.push('');
