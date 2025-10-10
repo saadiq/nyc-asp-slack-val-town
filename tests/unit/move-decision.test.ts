@@ -23,8 +23,17 @@ describe('move-decision', () => {
   });
 
   function createMockWeekView(days: Partial<DayStatus>[]): WeekView {
+    // Use explicit timezone-aware dates (EDT, UTC-4 for October 2025)
+    const baseDates = [
+      new Date('2025-10-06T12:00:00-04:00'), // Mon
+      new Date('2025-10-07T12:00:00-04:00'), // Tue
+      new Date('2025-10-08T12:00:00-04:00'), // Wed
+      new Date('2025-10-09T12:00:00-04:00'), // Thu
+      new Date('2025-10-10T12:00:00-04:00'), // Fri
+    ];
+
     const fullDays: DayStatus[] = days.map((d, i) => ({
-      date: new Date(2025, 9, 6 + i), // Oct 6-10, 2025 (Mon-Fri)
+      date: baseDates[i],
       dayOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'][i] as any,
       hasNearSideCleaning: false,
       hasFarSideCleaning: false,

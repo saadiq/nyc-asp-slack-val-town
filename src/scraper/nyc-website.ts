@@ -1,6 +1,7 @@
 // src/scraper/nyc-website.ts
 import { parseHTML } from 'linkedom';
 import { retry } from '../utils/retry';
+import { getNycNow } from '../utils/date-utils';
 import { ScrapeResult } from '../types';
 
 const NYC_ASP_URL = 'https://www.nyc.gov/html/dot/html/motorist/alternate-side-parking.shtml';
@@ -49,14 +50,14 @@ export function parseHtmlForSuspension(html: string): ScrapeResult {
       return {
         isSuspendedToday: true,
         reason,
-        scrapedAt: new Date(),
+        scrapedAt: getNycNow(),
       };
     }
   }
 
   return {
     isSuspendedToday: false,
-    scrapedAt: new Date(),
+    scrapedAt: getNycNow(),
   };
 }
 

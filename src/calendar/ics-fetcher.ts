@@ -58,7 +58,9 @@ export async function fetchIcsFile(year: number): Promise<string> {
 export async function getIcsContent(
   forceRefresh: boolean = false
 ): Promise<string> {
-  const currentYear = new Date().getFullYear();
+  // Get current year in NYC timezone to handle New Year's Eve edge case
+  const { getNycNow, formatNycDate } = await import('../utils/date-utils');
+  const currentYear = parseInt(formatNycDate(getNycNow(), 'yyyy'), 10);
 
   // Check cache first (unless forcing refresh)
   if (!forceRefresh) {

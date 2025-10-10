@@ -21,10 +21,13 @@ export function formatNycDate(date: Date, formatStr: string): string {
 
 /**
  * Convert day of week number (0=Sun, 1=Mon, ...) to our DayOfWeek type
+ * Extracts day in NYC timezone to avoid wrong day near midnight UTC
  */
 export function getDayOfWeek(date: Date): DayOfWeek {
   const dayMap: DayOfWeek[] = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  return dayMap[date.getDay()];
+  // Use formatInTimeZone to get day index in NYC timezone (0-6, where 0=Sunday)
+  const dayIndex = parseInt(formatInTimeZone(date, NYC_TIMEZONE, 'i'), 10);
+  return dayMap[dayIndex % 7]; // % 7 maps Sunday (7) back to 0
 }
 
 /**
@@ -33,16 +36,27 @@ export function getDayOfWeek(date: Date): DayOfWeek {
  * (using noon to avoid any timezone edge cases)
  */
 export function getThisMonday(now: Date = getNycNow()): Date {
-  const dayOfWeek = now.getDay(); // 0 = Sunday, 1 = Monday, etc.
+  // Get day of week in NYC timezone (0=Sun, 1=Mon, etc.)
+  const dayIndex = parseInt(formatInTimeZone(now, NYC_TIMEZONE, 'i'), 10);
+  const dayOfWeek = dayIndex % 7;
+
   const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Sunday should go back 6 days
 
-  // Create a date representing Monday at noon NYC time
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - daysFromMonday);
-  // Set to noon to avoid any timezone conversion issues
-  monday.setHours(12, 0, 0, 0);
+  // Use addDays for timezone-safe date arithmetic, then create Monday at noon NYC time
+  const monday = addDays(now, -daysFromMonday);
 
-  return monday;
+  // Parse the date in NYC timezone and create a new Date at noon NYC time
+  const mondayStr = formatInTimeZone(monday, NYC_TIMEZONE, 'yyyy-MM-dd');
+  return new Date(`${mondayStr}T12:00:00${getCurrentNycOffset()}`);
+}
+
+/**
+ * Get current NYC timezone offset string (e.g., "-04:00" for EDT, "-05:00" for EST)
+ */
+function getCurrentNycOffset(): string {
+  const now = new Date();
+  const nycTime = formatInTimeZone(now, NYC_TIMEZONE, 'xxx'); // Returns like "-04:00"
+  return nycTime;
 }
 
 /**
@@ -50,9 +64,8 @@ export function getThisMonday(now: Date = getNycNow()): Date {
  */
 export function getThisFriday(now: Date = getNycNow()): Date {
   const monday = getThisMonday(now);
-  const friday = new Date(monday);
-  friday.setDate(monday.getDate() + 4);
-  return friday;
+  // Use addDays for timezone-safe arithmetic
+  return addDays(monday, 4);
 }
 
 /**
@@ -60,11 +73,8 @@ export function getThisFriday(now: Date = getNycNow()): Date {
  */
 export function getWeekdays(now: Date = getNycNow()): Date[] {
   const monday = getThisMonday(now);
-  return [0, 1, 2, 3, 4].map(offset => {
-    const day = new Date(monday);
-    day.setDate(monday.getDate() + offset);
-    return day;
-  });
+  // Use addDays for timezone-safe arithmetic
+  return [0, 1, 2, 3, 4].map(offset => addDays(monday, offset));
 }
 
 /**
@@ -97,7 +107,8 @@ export function getNextWeekday(startDate: Date, targetDayName: DayOfWeek): Date 
   }
 
   let checkDate = addDays(startDate, 1);
-  while (checkDate.getDay() !== targetDayIndex) {
+  // Use getDayOfWeek which now properly extracts NYC timezone day
+  while (getDayOfWeek(checkDate) !== targetDayName) {
     checkDate = addDays(checkDate, 1);
     // Safety: don't loop forever
     if (checkDate > addDays(startDate, 14)) return null;
