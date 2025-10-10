@@ -88,8 +88,12 @@ async function buildValTownBundle() {
 `);
 
   // Collect all imports from source files
-  // Use a Map to track imports by package, merging named imports
-  const externalImports = new Map<string, Set<string>>();
+  // Track imports by package with their types (default, named, or namespace)
+  interface ImportInfo {
+    type: 'default' | 'named' | 'namespace';
+    name: string;
+  }
+  const externalImports = new Map<string, ImportInfo[]>();
   const processedSources: string[] = [];
 
   for (const file of SOURCE_FILES) {
@@ -109,7 +113,7 @@ async function buildValTownBundle() {
       // If it's an external package (not a relative import)
       if (!importPath.startsWith('.')) {
         if (!externalImports.has(importPath)) {
-          externalImports.set(importPath, new Set());
+          externalImports.set(importPath, []);
         }
 
         // Extract named imports from { ... }
@@ -118,10 +122,25 @@ async function buildValTownBundle() {
             .slice(1, -1) // Remove { }
             .split(',')
             .map(s => s.trim());
-          namedImports.forEach(imp => externalImports.get(importPath)!.add(imp));
+          namedImports.forEach(imp => {
+            // Only add if not already present
+            const existing = externalImports.get(importPath)!;
+            if (!existing.some(i => i.type === 'named' && i.name === imp)) {
+              existing.push({ type: 'named', name: imp });
+            }
+          });
+        } else if (importSpecifiers.startsWith('*')) {
+          // Namespace import (* as Something)
+          const existing = externalImports.get(importPath)!;
+          if (!existing.some(i => i.type === 'namespace' && i.name === importSpecifiers)) {
+            existing.push({ type: 'namespace', name: importSpecifiers });
+          }
         } else {
-          // Default or namespace import - keep as-is
-          externalImports.get(importPath)!.add(importSpecifiers);
+          // Default import
+          const existing = externalImports.get(importPath)!;
+          if (!existing.some(i => i.type === 'default' && i.name === importSpecifiers)) {
+            existing.push({ type: 'default', name: importSpecifiers });
+          }
         }
       }
     }
@@ -155,13 +174,31 @@ async function buildValTownBundle() {
   sections.push('// ============================================================================\n');
 
   // Convert collected imports to import statements, deduplicated
-  for (const [pkgPath, specifiers] of Array.from(externalImports.entries()).sort()) {
-    const specifiersArray = Array.from(specifiers);
+  for (const [pkgPath, imports] of Array.from(externalImports.entries()).sort()) {
+    // Separate by type
+    const defaultImports = imports.filter(i => i.type === 'default').map(i => i.name);
+    const namedImports = imports.filter(i => i.type === 'named').map(i => i.name);
+    const namespaceImports = imports.filter(i => i.type === 'namespace').map(i => i.name);
 
-    // All specifiers are named imports (we extracted them from { ... })
-    const namedImports = specifiersArray;
+    let importStatement = 'import ';
+    const parts: string[] = [];
 
-    let importStatement = 'import { ' + namedImports.join(', ') + ' }';
+    // Add default import first (if any)
+    if (defaultImports.length > 0) {
+      parts.push(defaultImports[0]); // Should only be one default import per package
+    }
+
+    // Add namespace import (if any)
+    if (namespaceImports.length > 0) {
+      parts.push(namespaceImports[0]); // Should only be one namespace import per package
+    }
+
+    // Add named imports (if any)
+    if (namedImports.length > 0) {
+      parts.push(`{ ${namedImports.join(', ')} }`);
+    }
+
+    importStatement += parts.join(', ');
 
     // Transform to npm: syntax
     let pkgWithVersion = pkgPath;
