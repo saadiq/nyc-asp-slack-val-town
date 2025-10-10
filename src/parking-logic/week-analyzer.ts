@@ -7,9 +7,10 @@ import { isSuspended } from './suspension-checker';
  * Build week view with parking status for each day
  */
 export async function buildWeekView(
-  config: Config
+  config: Config,
+  referenceDate?: Date
 ): Promise<WeekView> {
-  const weekdays = getWeekdays();
+  const weekdays = getWeekdays(referenceDate);
   const days: DayStatus[] = [];
 
   for (const date of weekdays) {
@@ -41,8 +42,8 @@ export async function buildWeekView(
   }
 
   return {
-    startDate: getThisMonday(),
-    endDate: getThisFriday(),
+    startDate: getThisMonday(referenceDate),
+    endDate: getThisFriday(referenceDate),
     days,
   };
 }
