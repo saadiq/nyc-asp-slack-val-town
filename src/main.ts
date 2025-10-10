@@ -1,6 +1,7 @@
 // src/main.ts
 import { loadConfig } from './config';
-import { getNycNow, formatNycDate, getDayOfWeek } from './utils/date-utils';
+import { getNycNow, formatNycDate, getDayOfWeek, NYC_TIMEZONE } from './utils/date-utils';
+import { formatInTimeZone } from 'date-fns-tz';
 import { buildWeekView, optimizeParkingSides } from './parking-logic/week-analyzer';
 import { shouldSendMoveReminder } from './parking-logic/move-decision';
 import { isSuspended } from './parking-logic/suspension-checker';
@@ -19,7 +20,8 @@ export async function main() {
   try {
     const config = loadConfig();
     const now = getNycNow();
-    const hour = now.getHours();
+    // Extract hour in NYC timezone (not system timezone)
+    const hour = parseInt(formatInTimeZone(now, NYC_TIMEZONE, 'H'), 10);
     const dayOfWeek = getDayOfWeek(now);
 
     console.log(`Running NYC ASP Bot at ${formatNycDate(now, 'yyyy-MM-dd HH:mm')}`);

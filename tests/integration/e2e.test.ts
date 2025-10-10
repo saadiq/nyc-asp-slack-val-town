@@ -42,8 +42,8 @@ describe('E2E Integration Test', () => {
   });
 
   it('should generate valid Slack messages', async () => {
-    // Mock Sunday 5 AM NYC time
-    const sundayDate = new Date('2025-10-05T05:00:00');
+    // Mock Sunday 5 AM NYC time (EDT, UTC-4)
+    const sundayDate = new Date('2025-10-05T05:00:00-04:00');
     const getNycNowSpy = vi.spyOn(dateUtils, 'getNycNow').mockReturnValue(sundayDate);
 
     await main();
