@@ -19,9 +19,9 @@ export function buildWeeklySummary(
       ? config.nearSideEmoji
       : config.farSideEmoji;
 
-    // Add padding after each icon except the last (emoji ~2 chars + 5 spaces = 7 to match "Mon    ")
+    // Add padding after each icon except the last (emoji ~2 chars + 7 spaces = 9 to match "Mon    ")
     return index < weekView.days.length - 1
-      ? icon + '     ' // 5 spaces
+      ? icon + '       ' // 7 spaces
       : icon;
   }).join('');
 

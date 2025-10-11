@@ -34,16 +34,31 @@ export function getDayOfWeek(date: Date): DayOfWeek {
  * Get the Monday of the current week (for week view)
  * Returns a Date object representing Monday at noon in NYC timezone
  * (using noon to avoid any timezone edge cases)
+ *
+ * For Saturday and Sunday: Returns the NEXT Monday (forward-looking)
+ * For Mon-Fri: Returns the current week's Monday
  */
 export function getThisMonday(now: Date = getNycNow()): Date {
   // Get day of week in NYC timezone (0=Sun, 1=Mon, etc.)
   const dayIndex = parseInt(formatInTimeZone(now, NYC_TIMEZONE, 'i'), 10);
   const dayOfWeek = dayIndex % 7;
 
-  const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Sunday should go back 6 days
+  let daysToAdd: number;
+
+  if (dayOfWeek === 0) {
+    // Sunday: go forward 1 day to next Monday
+    daysToAdd = 1;
+  } else if (dayOfWeek === 6) {
+    // Saturday: go forward 2 days to next Monday
+    daysToAdd = 2;
+  } else {
+    // Mon-Fri: go back to this week's Monday
+    // dayOfWeek 1=Mon (go back 0), 2=Tue (go back 1), etc.
+    daysToAdd = -(dayOfWeek - 1);
+  }
 
   // Use addDays for timezone-safe date arithmetic, then create Monday at noon NYC time
-  const monday = addDays(now, -daysFromMonday);
+  const monday = addDays(now, daysToAdd);
 
   // Parse the date in NYC timezone and create a new Date at noon NYC time
   const mondayStr = formatInTimeZone(monday, NYC_TIMEZONE, 'yyyy-MM-dd');
