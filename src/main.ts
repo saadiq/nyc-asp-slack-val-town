@@ -29,8 +29,8 @@ export async function main() {
     // Check for force run override
     const forceRun = process.env.FORCE_RUN?.toLowerCase();
 
-    // Sunday 5 AM - Weekly summary
-    if (forceRun === 'summary' || (dayOfWeek === 'Sun' && hour === 5)) {
+    // Sat/Sun 5 AM - Weekly summary
+    if (forceRun === 'summary' || (hour === 5 && ['Sat', 'Sun'].includes(dayOfWeek))) {
       await sendWeeklySummary(config);
     }
 
